@@ -22,7 +22,13 @@
     xgboost
 
 ## Run
-python3 ./application.py
+    python3 ./application.py
+
+## Chrome or Firefox
+    http://127.0.0.1:5000
+
+# Demo
+<img src="Images/ef.jpg" width="800px"/>
 
 ##
 ##### Original source by Aditya Srichandan
