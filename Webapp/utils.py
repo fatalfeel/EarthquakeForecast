@@ -108,7 +108,7 @@ def prepare_earthquake_data_and_model(days_out_to_predict = 7, max_depth=100, et
                 'eta': eta,  # the training step for each iteration
             }  # logging mode - quiet}  # the number of classes that exist in this datset
 
-    num_round = 20000  # the number of training iterations
+    num_round = 2000  # the number of training iterations
     #early_stopping_rounds=30
     xgb_model = xgb.train(param, dtrain, num_round) 
 
