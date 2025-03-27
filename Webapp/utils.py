@@ -1,11 +1,12 @@
 #!/usr/bin/env python
-from flask import render_template, request
 import datetime
-from datetime import datetime
-from datetime import timedelta
 import pandas as pd
 import numpy as np
 import xgboost as xgb
+from datetime import datetime
+from datetime import timedelta
+from flask import render_template, request
+from sklearn.model_selection import train_test_split
 from Webapp import app
 
 # global variables
@@ -69,7 +70,9 @@ def prepare_earthquake_data_and_model(days_out_to_predict = 7, max_depth=100, et
     df = df[np.isfinite(df['mag_outcome'])]
 
     # prepare outcome variable
-    df['mag_outcome'] = np.where(df['mag_outcome'] > 2.5, 1,0)
+    #avoid SettingWithCopyWarning: A value is trying to be set on a copy of a slice from a DataFrame.
+    #df['mag_outcome'] = np.where(df['mag_outcome'] > 2.5, 1, 0)
+    df.loc[:, 'mag_outcome'] = np.where(df['mag_outcome'] >= 2.0, 1, 0)
 
     df = df[['date',
              'latitude',
@@ -87,12 +90,13 @@ def prepare_earthquake_data_and_model(days_out_to_predict = 7, max_depth=100, et
     df_live = df_live[np.isfinite(df_live['mag_avg_22'])]
 
     # let's train the model whenever the webserver is restarted
-    from sklearn.model_selection import train_test_split
-    features = [f for f in list(df) if f not in ['date', 'mag_outcome', 'latitude',
-     'longitude']]
+    features = [f for f in list(df) if f not in ['date', 'mag_outcome', 'latitude', 'longitude']]
 
+    #test_size=0.1 10% for test
     X_train, X_test, y_train, y_test = train_test_split(df[features],
-                         df['mag_outcome'], test_size=0.3, random_state=42)
+                                                        df['mag_outcome'],
+                                                        test_size=0.1,
+                                                        random_state=42)
 
     dtrain  = xgb.DMatrix(X_train[features],    label=y_train)
     #dtest   = xgb.DMatrix(X_test[features],     label=y_test)
@@ -104,7 +108,7 @@ def prepare_earthquake_data_and_model(days_out_to_predict = 7, max_depth=100, et
                 'eta': eta,  # the training step for each iteration
             }  # logging mode - quiet}  # the number of classes that exist in this datset
 
-    num_round = 10000  # the number of training iterations
+    num_round = 20000  # the number of training iterations
     #early_stopping_rounds=30
     xgb_model = xgb.train(param, dtrain, num_round) 
 
@@ -134,7 +138,7 @@ def get_earth_quake_estimates(desired_date, df_live):
     locations = []
     if len(live_set_tmp) > 0:
         for lat, lon, pred in zip(live_set_tmp['latitude'], live_set_tmp['longitude'], live_set_tmp['preds']):
-            if pred >= 0.2:
+            if pred >= 0.05:
                 locations.append({'lat': lat, 'lng': lon, 'pred': f'{pred:.2f}'})
 
     return locations
