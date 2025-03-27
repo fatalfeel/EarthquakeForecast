@@ -72,7 +72,7 @@ def prepare_earthquake_data_and_model(days_out_to_predict = 7, max_depth=100, et
     # prepare outcome variable
     #avoid SettingWithCopyWarning: A value is trying to be set on a copy of a slice from a DataFrame.
     #df['mag_outcome'] = np.where(df['mag_outcome'] > 2.5, 1, 0)
-    df.loc[:, 'mag_outcome'] = np.where(df['mag_outcome'] >= 2.0, 1, 0)
+    df.loc[:, 'mag_outcome'] = np.where(df['mag_outcome'] < 2.0, 0, 1)
 
     df = df[['date',
              'latitude',
