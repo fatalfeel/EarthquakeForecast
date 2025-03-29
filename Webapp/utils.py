@@ -110,7 +110,7 @@ def prepare_earthquake_data_and_model(days_out_to_predict = 7, max_depth=100, et
 
     iters = 2000
     #early_stopping_rounds=30
-    xgb_model = xgb.train(param, dtrain, iters) 
+    xgb_model = xgb.train(param, dtrain, iters)
 
     # train on live data
     dlive = xgb.DMatrix(df_live[features])  
